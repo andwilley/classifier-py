@@ -4,8 +4,8 @@ from random import random, randint, shuffle, choice
 from functools import reduce
 import abc
 
-eta = .1
-reps = 10000
+eta = .03
+reps = 1000
 
 def parse_example(line: str) -> Tuple[List[float], List[float]]:
     words = line.split()
@@ -20,6 +20,9 @@ def sigmoid(x: float) -> float:
 
 def d_sigmoid(x: float) -> float:
     return x * (1.0 - x)
+
+def d_tanh(x: float) -> float:
+    return 1 - np.tanh(x)**2
 
 class Layer(abc.ABC):
     def output_values(self, inputs: List[float]) -> List[float]:
@@ -38,7 +41,7 @@ class SigmoidLayer(Layer):
         return self.outputs
 
     def backprop(self, errors: List[float]) -> List[float]:
-        self.input_errors = [o * (1 - o) * e for (e, o) in zip(errors, self.outputs)]
+        self.input_errors = [d_sigmoid(o) * e for (e, o) in zip(errors, self.outputs)]
         return self.input_errors
 
 class LinearCompleteLayer(Layer):
@@ -117,7 +120,7 @@ def run_classifier(layers, examples):
     return ys, ycs
 
 if __name__ == "__main__":
-    layers: List[Layer] = [LinearCompleteLayer(2,5), SigmoidLayer(5), LinearCompleteLayer(5,1), SigmoidLayer(1)]
+    layers: List[Layer] = [LinearCompleteLayer(2,6), SigmoidLayer(6), LinearCompleteLayer(6,1), SigmoidLayer(1)]
     examples = parse_file("hw3data.txt")
     val_examples = parse_file("hw3valid.txt")
     train_classifier(layers, examples, reps)
